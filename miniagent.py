@@ -3,6 +3,7 @@ import requests
 import subprocess
 import time
 from pathlib import Path
+import sys
 
 ALLOWED_PREFIXES = (
     "df",
@@ -165,6 +166,21 @@ def run_agent(user_text: str) -> str:
         messages.append(assistant_message)
 
         tool_calls = assistant_message.get("tool_calls", [])
+
+        # Debug output to stderr
+        print(f"--- Iteration {iteration} ---", file=sys.stderr)
+        if assistant_message.get("content"):
+            print(f"Assistant: {assistant_message['content']}", file=sys.stderr)
+        for tc in tool_calls:
+            f = tc["function"]
+        print(f"Tool request: {f['name']}({f['arguments']})", file=sys.stderr)
+        print("Messages so far:", file=sys.stderr)
+        for msg in messages:
+            role = msg.get("role")
+            content = msg.get("content", "")
+            print(f"{role}: {content}", file=sys.stderr)
+        # END Debug output
+
         if not tool_calls:
             return assistant_message.get("content", "")
 
@@ -202,3 +218,22 @@ def run_agent(user_text: str) -> str:
             )
 
     return "Stopped: maximum of 8 iterations reached."
+
+def main() -> None:
+    import sys
+    if len(sys.argv) > 1:
+        print(run_agent(" ".join(sys.argv[1:])))
+        return
+    while True:
+        try:
+            text = input("> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if text in {"exit", "quit"}:
+            break
+        if text:
+            print(run_agent(text))
+
+if __name__ == "__main__":
+    main()

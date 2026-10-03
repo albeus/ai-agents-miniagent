@@ -31,6 +31,31 @@ The model never executes anything itself. It returns a request for a named tool 
 
 This is the basic pattern behind an agent: a model, a tool loop, and a policy for what enters its context and what actions it may take.
 
+```text
+User request
+     │
+     ▼
+Harness assembles history and tool schemas
+     │
+     ▼
+Model produces a response
+     │
+     ├── Final answer ───────────────► Display and stop
+     │
+     └── Tool request
+              │
+              ▼
+       Harness validates it
+              │
+              ▼
+       Tool implementation runs
+              │
+              ▼
+       Result added to history
+              │
+              └────────────────────► Call model again
+```
+
 ## Requirements
 
 - Python 3.12 or later.
@@ -112,7 +137,7 @@ grep -Rni --include='*.md' 'systemctl' ~/agent-lab/readable
 ## Running the agent
 
 ```bash
-python miniagent.py
+python miniagent.py "User prompt / Task"
 ```
 
 Example tasks:
